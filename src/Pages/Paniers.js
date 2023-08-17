@@ -3,7 +3,7 @@ import { Carts } from "../Backends/Carts";
 import { Alerts } from '../Components/Communs/Alerts';
 import {Table, Button, Form, Badge} from 'react-bootstrap';
 import './Styles/paniers.css';
-import { MdCancel, MdShoppingCartCheckout, MdRemoveShoppingCart } from "react-icons/md";
+import {  MdShoppingCartCheckout, MdRemoveShoppingCart } from "react-icons/md";
 import { BsCartXFill } from "react-icons/bs";
 import { useRef } from "react";
 import { ModalConfirmation } from "../Components/Communs/DlgConfirmation";
