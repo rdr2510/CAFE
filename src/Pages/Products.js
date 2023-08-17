@@ -24,7 +24,7 @@ export default function Products(props){
         
         if (Search === undefined || Search === 'null'){
             produits.getProducts().then(p=>{
-                setProds(prods);
+                setProds(p.slice(0));
                 if (CategoryId > 0){
                     let cf= [parseInt(CategoryId, 10)];
                     handleFilterCategory(cf);
@@ -38,8 +38,7 @@ export default function Products(props){
             });
         } else {
             produits.searchProducts(Search).then(p=>{
-                prods= p.slice(0);
-                setProds(prods.slice(0)); 
+                setProds(p.slice(0)); 
                 handleFilterCategory([]);   
             }).catch(error=>{
                 setAlert({Etat: true, Titre: 'PRODUITS - Error search products', Type: 'ERROR', Message: error.message});
