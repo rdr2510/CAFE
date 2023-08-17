@@ -43,7 +43,6 @@ export default function Paniers({onPanier}){
     useEffect(()=>{
         const paniers= new Carts(urlBase);
         paniers.getAll().then(p=>{
-            carts= p.splice(0);
             setCarts(carts);
             calculTotal();
         }).catch(error=>{

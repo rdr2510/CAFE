@@ -24,9 +24,7 @@ export default function Products(props){
         
         if (Search === undefined || Search === 'null'){
             produits.getProducts().then(p=>{
-                prods= p.slice(0);
                 setProds(prods);
-                
                 if (CategoryId > 0){
                     let cf= [parseInt(CategoryId, 10)];
                     handleFilterCategory(cf);

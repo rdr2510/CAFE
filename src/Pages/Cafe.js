@@ -1,8 +1,6 @@
 import React,{useEffect, useState} from 'react';
 import {Card, } from 'react-bootstrap';
 import './Styles/produits.css';
-import Button from 'react-bootstrap/Button';
-import Form from './Ajout';
 
 
 const Cafe = () => {

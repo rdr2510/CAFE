@@ -10,7 +10,7 @@ export default function FiltreCategorie({filterManual, onFilter}) {
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [checkAllCat, setcheckAllCat] =  useState(true);
-    const [filter, setFilter]= useState([]);
+    const [filter]= useState([]);
 
     useEffect(()=>{
         const produits= new Produits(urlBase);
