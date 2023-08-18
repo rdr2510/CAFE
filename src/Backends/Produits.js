@@ -1,64 +1,44 @@
+import { useQuery } from 'react-query'
+import axios from 'axios';
 
-export default class Produits{
-    
-    urlBase= '';
+const urlBase = 'https://insta-api-api.0vxq7h.easypanel.host/';
 
-    constructor (urlBase){
-       this.urlBase= urlBase; 
+export function GetProduits(){
+    async function getProduits() {
+        const { data } = await axios.get(urlBase+'products');
+        return data;
     }
+    return useQuery(['products'], getProduits);
+}
 
-    async getProducts(){
-        const url= this.urlBase+'products';
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const products= await response.json();
-        return products;
+export function GetProduit(id){
+    async function getProduit() {
+        const { data } = await axios.get(urlBase+'product/'+id);
+        return data;
     }
+    return useQuery(['products'], getProduit);
+}
 
-    async getProduct(id){
-        const url= this.urlBase+'products/'+ id;
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const product= await response.json();
-        return product;
+export function RechercheProduits(motcle){
+    async function getProduits() {
+        const { data } = await axios.get(urlBase+'products?search=' + motcle);
+        return data;
     }
+    return useQuery(['products'], getProduits);
+}
 
-    async searchProducts(motcle){
-        const url= this.urlBase+'products?search=' + motcle;
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const products= await response.json();
-        return products;
+export function GetCategories(){
+    async function getCategories() {
+        const { data } = await axios.get(urlBase+'product-categories');
+        return data;
     }
+    return useQuery(['category'], getCategories);
+}
 
-    async getCategories(){
-        const url= this.urlBase+'product-categories';
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const categories= await response.json();
-        return categories;
+export function GetCouleurs(){
+    async function getCouleurs() {
+        const { data } = await axios.get(urlBase+'product-colors');
+        return data;
     }
-
-    async getColors(){
-        const url= this.urlBase+'product-colors';
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const colors= await response.json();
-        return colors;
-    }
+    return useQuery(['color'], getCouleurs);
 }

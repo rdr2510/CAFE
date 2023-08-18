@@ -8,9 +8,9 @@ import { FiCoffee } from "react-icons/fi";
 import { MdStyle, MdCoffeeMaker } from "react-icons/md";
 import { IoLogOut } from "react-icons/io5";
 import { CgToolbarBottom } from "react-icons/cg";
-import Produits from '../../Backends/Produits';
+import { GetCategories } from '../../Backends/Produits';
 import { Alerts } from './Alerts';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import './Styles/headers.css';
 
@@ -18,20 +18,15 @@ import './Styles/headers.css';
 export default function Header({panier, WishList, onMonProfil, onUserDisConnect, onChangeThemeStyle}) {
     const navigate= useNavigate();
 
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     const [categories, setCategories] =  useState([]);
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
-
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getCategories().then(cat=>{
-            setCategories(cat);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'Error list all categories', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+    
+    const getCategories= GetCategories();
+    if (getCategories.isError){
+        setAlert({Etat: true, Titre: 'Error list all categories', Type: 'ERROR', Message: getCategories.error.message});
+    } else if (getCategories.isSuccess){
+        setCategories(getCategories.data);
+    }
 
     const iconCategory=(name)=>{
         switch(name){

@@ -1,24 +1,20 @@
 import Carousel from 'react-bootstrap/Carousel';
-import { useEffect, useState } from 'react';
-import Produits from '../../Backends/Produits';
+import { useState } from 'react';
+import { GetProduits } from '../../Backends/Produits';
 import { Alerts } from './Alerts';
 import './Styles/carousel.css';
 
 export default function Slider(){
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getProducts().then(p=>{
-            setProds(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+    const produits = GetProduits();
+    if (produits.isError){
+        setAlert({Etat: true, Titre: 'Error list all products', Type: 'ERROR', Message: produits.error.message});
+    }
+    if (produits.isSuccess){
+        setProds(produits.data);
+    }
 
     function onFermerAlert(){
         setAlert({Etat: false});

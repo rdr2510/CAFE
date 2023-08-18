@@ -1,26 +1,24 @@
 import './Styles/categories.css';
-import Produits from '../../Backends/Produits';
+import { GetCategories } from '../../Backends/Produits';
 import { Alerts } from '../Communs/Alerts';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BiCategoryAlt } from 'react-icons/bi';
 import { useNavigate } from "react-router-dom";
 
 export default function Categories(){
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
-    const [prods, setProds] =  useState([]);
+    let [prods, setProds] =  useState([]);
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     const navigate= useNavigate();
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getProducts().then(p=>{
-            setProds(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'CATÉGORIE - Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+    const categories = GetCategories();
+
+    if (categories.isError){
+        setAlert({Etat: true, Titre: 'CATÉGORIE - Error list all products', Type: 'ERROR', Message: categories.error.message});
+    }
+
+    if (categories.isSuccess){
+        setProds(categories.data);
+    }
 
     function category(produit){
         let cats= [];

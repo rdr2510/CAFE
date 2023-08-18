@@ -1,60 +1,28 @@
-export class Carts{
-    
-    urlBase= '';
+import { useQuery, useMutation } from 'react-query'
+import axios from 'axios';
 
-    constructor (urlBase){
-       this.urlBase= urlBase; 
+const urlBase = 'https://insta-api-api.0vxq7h.easypanel.host/';
+
+export function GetPaniers(){
+    async function getPaniers() {
+        const { data } = await axios.get(urlBase+'cart');
+        return data;
     }
+    return useQuery(['carts'], getPaniers);
+}
 
-    async getAll(){
-        const url= this.urlBase+'cart';
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const carts= await response.json();
-        return carts;
-    }
+export async function UpdatePanier(productId, quantity){
+    return useMutation(await axios.put(urlBase+'cart/modify-product-quantity/'+productId, {quantity: quantity}));
+}
 
-    async update(productId, quantity){
-        const url= this.urlBase+'cart/modify-product-quantity/'+ productId;
-        const response= await fetch(url, {method: 'PATCH', body: JSON.stringify({quantity: quantity}), 
-                                          headers: {'Content-type': 'application/json; charset=UTF-8'}
-                                    });
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
+export async function AddPanier(productId, quantity){
+    return useMutation(await axios.post(urlBase+'cart/add-product', {productId: productId, quantity: quantity}));
+}
 
-    async add(productId, quantity){
-        const url= this.urlBase+'cart/add-product';
-        const response= await fetch(url, {method: 'POST', body: JSON.stringify({productId: productId, quantity: quantity}), 
-                        headers: {'Content-type': 'application/json; charset=UTF-8'}
-                    });
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
+export async function DeletePanier(productId){
+    return useMutation(await axios.delete(urlBase+'cart/remove-product/'+productId));
+}
 
-    async delete(id){
-        const url= this.urlBase+'cart/remove-product/' + id;
-        const response= await fetch(url, {method: 'DELETE'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
-
-    async clear(){
-        const url= this.urlBase+'cart/clear';
-        const response= await fetch(url, {method: 'DELETE'});
-
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
+export async function ClearPanier(){
+    return useMutation(await axios.delete(urlBase+'cart/clear'));
 }

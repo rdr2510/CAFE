@@ -1,48 +1,24 @@
-export default class WishList{
-    urlBase= '';
+import { useQuery, useMutation } from 'react-query'
+import axios from 'axios';
 
-    constructor (urlBase){
-       this.urlBase= urlBase; 
+const urlBase = 'https://insta-api-api.0vxq7h.easypanel.host/';
+
+export function GetWishLists(){
+    async function getWishLists() {
+        const { data } = await axios.get(urlBase+'wishlist');
+        return data;
     }
+    return useQuery(['wishlist'], getWishLists);
+}
 
-    async getAll(){
-        const url= this.urlBase+'wishlist';
-        const response= await fetch(url, {method:'GET'});
-        if (!response.ok) {
-            const message = 'Ooops! Une erreur se produit, Code erreur: ' + response.status;
-            throw new Error(message);
-        }
-        const wishlist= await response.json();
-        return wishlist;
-    }
+export async function AddWishList(productId){
+    return useMutation(await axios.post(urlBase+'wishlist/add-product/'+productId));
+}
 
-    async add(productId){
-        const url= this.urlBase+'wishlist/add-product';
-        const response= await fetch(url, {method: 'POST', body: JSON.stringify({productId: productId}), 
-                        headers: {'Content-type': 'application/json; charset=UTF-8'}
-                    });
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
+export async function DeleteWishList(productId){
+    return useMutation(await axios.delete(urlBase+'wishlist/delete-product/'+productId));
+}
 
-    async delete(id){
-        const url= this.urlBase+'wishlist/delete-product/' + id;
-        const response= await fetch(url, {method: 'DELETE'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
-
-    async clear(){
-        const url= this.urlBase+'wishlist/clear';
-        const response= await fetch(url, {method: 'DELETE'});
-
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-    }
+export async function ClearWishList(){
+    return useMutation(await axios.delete(urlBase+'wishlist/clear'));
 }

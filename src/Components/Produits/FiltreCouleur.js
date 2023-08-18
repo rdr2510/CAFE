@@ -1,26 +1,23 @@
 import Form from 'react-bootstrap/Form';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { IoIosColorPalette } from "react-icons/io";
-import Produits from '../../Backends/Produits';
+import {GetCouleurs} from '../../Backends/Produits';
 import { Alerts } from '../Communs/Alerts';
 
 export default function FiltreCouleur({onFilter}) {
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [checkAllColor, setcheckAllColor] =  useState(true);
     const [filter]= useState([]);
+    const couleurs = GetCouleurs();
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getProducts().then(p=>{
-            setProds(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'FILTRE COULEUR - Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+    if (couleurs.isError){
+        setAlert({Etat: true, Titre: 'FILTRE COULEUR - Error list all products', Type: 'ERROR', Message: couleurs.error.message});
+    }
+
+    if (couleurs.isSuccess){
+        setProds(couleurs.data);
+    }
 
     function Couleur(produit){
         let colors= [];

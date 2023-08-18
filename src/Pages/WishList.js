@@ -1,10 +1,10 @@
-import React,{useEffect, useState} from 'react';
+import React,{useState} from 'react';
 import './Styles/produits.css';
 import {Card, Badge, Button} from 'react-bootstrap';
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
 import { MdCancel } from "react-icons/md";
 import { IoIosHeartDislike } from "react-icons/io";
-import WishLists from '../Backends/Wishlist';
+import { GetWishLists, DeleteWishList, ClearWishList } from '../Backends/Wishlist';
 import { Alerts } from '../Components/Communs/Alerts';
 import { ModalConfirmation } from "../Components/Communs/DlgConfirmation";
 import Navigation from '../Components/Produits/Navigation';
@@ -15,17 +15,13 @@ export default function WishList({onWishList}){
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [Modal, setModal]= useState({Action:-1, Etat: false, Titre:'', Message:'',
                                         TxtBtnConfirmer:'', TxtBtnAnnuler:'', Type:'', Data: Object});
-
-    useEffect(() => {
-        const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-        const wishlists= new WishLists(urlBase);
-        wishlists.getAll().then((p)=>{
-            setWishlist(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: error.message});
-        });
-    
-    }, [])
+    const getWishLists= GetWishLists();
+    if (getWishLists.isError){
+        setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: getWishLists.error.message});
+    } else if (getWishLists.isSuccess){
+        setWishlist(getWishLists.data);
+        onWishList(getWishLists.data);
+    }
 
     function onFermerAlert(){
         setAlert({Etat: false});
@@ -42,34 +38,22 @@ export default function WishList({onWishList}){
   }
 
     function handleModalConfirmer(Action){
-      const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-      const wishlists= new WishLists(urlBase);
       switch(Action){
           case 1: // suppression article
-              wishlists.delete(Modal.Data.id).then(()=>{
-                  setAlert({Etat: true, Titre: 'WISHLIST - Suppression de liste souhait', Type: 'SUCCESS', Message: 'Suppression de liste a souhait "'+Modal.Data.name+'" avec succés !'});
-                  wishlists.getAll().then(p=>{
-                    onWishList(p.splice(0));
-                    setWishlist(p.splice(0));
-                  }).catch(error=>{
-                      setAlert({Etat: true, Titre: 'WISHLIST - Error Total item on wishlist', Type: 'ERROR', Message: error.message});
-                  });
-              }).catch(error=>{
-                  setAlert({Etat: true, Titre: 'WISHLIST - Error delete item', Type: 'ERROR', Message: error.message});
-              });
-              break;
+                const deleteWishList= DeleteWishList(Modal.Data.id);
+                if (deleteWishList.isError){
+                    setAlert({Etat: true, Titre: 'WISHLIST - Error Total item on wishlist', Type: 'ERROR', Message: deleteWishList.error.message});
+                }  else if (deleteWishList.isSuccess){
+                    setAlert({Etat: true, Titre: 'WISHLIST - Suppression de liste souhait', Type: 'SUCCESS', Message: 'Suppression de liste a souhait "'+Modal.Data.name+'" avec succés !'});               
+                } 
+                break;
           case 2: // vidage du panier
-              wishlists.clear().then(()=>{
-                  setAlert({Etat: true, Titre: 'PANIER - Vidange du panier', Type: 'SUCCESS', Message: 'La list a été vidé avec succés !'});
-                  wishlists.getAll().then(p=>{
-                    onWishList(p.splice(0));
-                    setWishlist(p.splice(0));
-                  }).catch(error=>{
-                      setAlert({Etat: true, Titre: 'WISHLIST - Error Total item on wishlist', Type: 'ERROR', Message: error.message});
-                  });
-              }).catch(error=>{
-                  setAlert({Etat: true, Titre: 'WISHLIST - Error clear item', Type: 'ERROR', Message: error.message});
-              });
+                const clearWishList= ClearWishList();
+                if (clearWishList.isError){
+                    setAlert({Etat: true, Titre: 'WISHLIST - Error clear item', Type: 'ERROR', Message: clearWishList.error.message});
+                }  else if (clearWishList.isSuccess){
+                    setAlert({Etat: true, Titre: 'PANIER - Vidange du panier', Type: 'SUCCESS', Message: 'La list a été vidé avec succés !'});
+                } 
               break;
           default:
       }

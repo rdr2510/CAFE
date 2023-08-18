@@ -8,7 +8,7 @@ export default class Coffee{
 
     async getCoffee(){
         const url= this.urlBase+'coffees';
-        const response= await fetch(url, {method:'GET'});
+        const response= await fetch(url, {mode: 'no-cors', method:'GET'});
        
         if (!response.ok) {
             const error= await response.json();

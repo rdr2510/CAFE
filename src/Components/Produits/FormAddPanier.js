@@ -2,7 +2,7 @@ import {Form, Button} from 'react-bootstrap';
 import { BsCart4 } from "react-icons/bs";
 import './Styles/formaddpanier.css';
 import { useState } from 'react';
-import { Carts } from "../../Backends/Carts";
+import { AddPanier, GetPaniers } from "../../Backends/Carts";
 import { Alerts } from '../Communs/Alerts';
 
 export default function FormAddPanier({id, name, onPanier}){
@@ -47,18 +47,18 @@ export default function FormAddPanier({id, name, onPanier}){
     }
 
     function handleAddPanier(event){
-        const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-        const paniers= new Carts(urlBase);
-        paniers.add(id, qte).then(()=>{
+        const addPanier= AddPanier(id, qte);
+        if (addPanier.isError){
+            setAlert({Etat: true, Titre: 'PANIER - Error add products', Type: 'ERROR', Message: addPanier.error.message});
+        } else if (addPanier.isSuccess){
             setAlert({Etat: true, Titre: 'PANIER - Ajout panier', Type: 'SUCCESS', Message: 'Ajout de produit dans le panier avec succés !  Produit: '+name+' - Quantité: '+qte});
-            paniers.getAll().then((p)=>{
-                onPanier(p.length);
-            }).catch(error=>{
-                setAlert({Etat: true, Titre: 'PANIER - Error add products', Type: 'ERROR', Message: error.message});
-            });
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'PANIER - Error add products', Type: 'ERROR', Message: error.message});
-        });
+            const getPaniers= GetPaniers();
+            if (getPaniers.isError){
+                setAlert({Etat: true, Titre: 'PANIER - Error list carts', Type: 'ERROR', Message: getPaniers.error.message});
+            } else if (getPaniers.isSuccess){
+                onPanier(getPaniers.data.length);
+            }
+        }
     }
 
     return (

@@ -1,27 +1,24 @@
 import Form from 'react-bootstrap/Form';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BiCategoryAlt } from "react-icons/bi";
-import Produits from '../../Backends/Produits';
+import { GetProduits } from '../../Backends/Produits';
 import { Alerts } from '../Communs/Alerts';
 
 export default function FiltreCategorie({filterManual, onFilter}) {
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [checkAllCat, setcheckAllCat] =  useState(true);
     const [filter]= useState([]);
+    const produits = GetProduits();
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getProducts().then(p=>{
-            setProds(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'FILTRE CATÉGORIES - Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+    if (produits.isError){
+        setAlert({Etat: true, Titre: 'FILTRE CATÉGORIES - Error list all products', Type: 'ERROR', Message: produits.error.message});
+    }
 
+    if (produits.isSuccess){
+        setProds(produits.data);
+    }
+    
     function Categorie(produit){
         let category= [];
         for (const item of produit){

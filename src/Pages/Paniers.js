@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react"
-import { Carts } from "../Backends/Carts";
+import { useState } from "react"
+import { GetPaniers, DeletePanier, ClearPanier } from "../Backends/Carts";
 import { Alerts } from '../Components/Communs/Alerts';
 import {Table, Button, Form, Badge} from 'react-bootstrap';
 import './Styles/paniers.css';
 import {  MdShoppingCartCheckout, MdRemoveShoppingCart } from "react-icons/md";
 import { BsCartXFill } from "react-icons/bs";
-import { useRef } from "react";
 import { ModalConfirmation } from "../Components/Communs/DlgConfirmation";
 
 
 export default function Paniers({onPanier}){
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     let [carts, setCarts] = useState([]);
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     let [subTotal, setSubTotal]= useState(0);
@@ -21,7 +18,15 @@ export default function Paniers({onPanier}){
     const [Modal, setModal]= useState({Action:-1, Etat: false, Titre:'', Message:'',
                                         TxtBtnConfirmer:'', TxtBtnAnnuler:'', Type:'', Data: Object});
 
-    const count= useRef(0);
+    const getPaniers= GetPaniers();
+    if (getPaniers.isError){
+        setAlert({Etat: true, Titre: 'CATÉGORIE - Error list all products', Type: 'ERROR', Message: getPaniers.error.message});
+    } else if (getPaniers.isSuccess){
+        setCarts(carts);
+        calculTotal();
+        onPanier(carts.length);
+    }
+
 
     function onFermerAlert(){
         setAlert({Etat: false});
@@ -39,18 +44,6 @@ export default function Paniers({onPanier}){
         grandTotal= subTotal + taxe;
         setGrandTotal(grandTotal);
     }
-
-    useEffect(()=>{
-        const paniers= new Carts(urlBase);
-        paniers.getAll().then(p=>{
-            setCarts(carts);
-            calculTotal();
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'CATÉGORIE - Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-        count.current= count.current + 1;
-    }, []);
 
     function handleMoinsQte(index){
         let q= carts[index].quantity;
@@ -108,38 +101,22 @@ export default function Paniers({onPanier}){
     }
 
     function handleModalConfirmer(Action){
-        const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-        const paniers= new Carts(urlBase);
         switch(Action){
             case 1: // suppression article
-                paniers.delete(Modal.Data.id).then(()=>{
+                const deletePanier= DeletePanier();
+                if (deletePanier.isError){
+                    setAlert({Etat: true, Titre: 'PANIER - Error delete item', Type: 'ERROR', Message: deletePanier.error.message});
+                } else if (deletePanier.isSuccess){
                     setAlert({Etat: true, Titre: 'PANIER - Suppression panier', Type: 'SUCCESS', Message: 'Suppression de l\'article "'+Modal.Data.name+'" dans le panier avec succés !'});
-                    paniers.getAll().then((p)=>{
-                        onPanier(p.length);
-                        carts= p.splice(0);
-                        setCarts(carts);
-                        calculTotal();
-                    }).catch(error=>{
-                        setAlert({Etat: true, Titre: 'PANIER - Error Total item on cart', Type: 'ERROR', Message: error.message});
-                    });
-                }).catch(error=>{
-                    setAlert({Etat: true, Titre: 'PANIER - Error delete item', Type: 'ERROR', Message: error.message});
-                });
+                }
                 break;
-            case 2: // vidage du panier
-                paniers.clear().then(()=>{
+            case 2: // vidage du panier    
+                const clearPanier= ClearPanier();
+                if (clearPanier.isError){
+                    setAlert({Etat: true, Titre: 'PANIER - Error clear item', Type: 'ERROR', Message: clearPanier.error.message});
+                } else if (clearPanier.isSuccess){
                     setAlert({Etat: true, Titre: 'PANIER - Vidange du panier', Type: 'SUCCESS', Message: 'Le panier a été vidé avec succés !'});
-                    paniers.getAll().then((p)=>{
-                        onPanier(p.length);
-                        carts= p.splice(0);
-                        setCarts(carts);
-                        calculTotal();
-                    }).catch(error=>{
-                        setAlert({Etat: true, Titre: 'PANIER - Error Total item on cart', Type: 'ERROR', Message: error.message});
-                    });
-                }).catch(error=>{
-                    setAlert({Etat: true, Titre: 'PANIER - Error clear item', Type: 'ERROR', Message: error.message});
-                });
+                }
                 break;
             default:
         }

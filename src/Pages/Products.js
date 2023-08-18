@@ -3,9 +3,9 @@ import ListProduits from "../Components/Produits/Produits";
 import FiltrePrix from '../Components/Produits/FiltrePrix';
 import FiltreCouleur from "../Components/Produits/FiltreCouleur";
 import FiltreCategorie from "../Components/Produits/FiltreCategorie";
-import Produits from '../Backends/Produits';
+import {GetProduits, RechercheProduits} from '../Backends/Produits';
 import { Alerts } from '../Components/Communs/Alerts';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router';
 
 export default function Products(props){
@@ -13,39 +13,22 @@ export default function Products(props){
     let [prodsFilter, setProdsFilter] =  useState([]);
     const [filter, setFilter] = useState({category: [], color: [], price:{min:0, max:0}});
     const [naviger, setNaviger] = useState(['accueil', 'produits']);
-    const {CategoryId, Search} = useParams();
-
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
+    const {Search} = useParams();
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
+    let produits;
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
+    if (Search === undefined || Search === 'null'){
+        produits = GetProduits();
+    } else {
+        produits = RechercheProduits(Search);
+    }
         
-        if (Search === undefined || Search === 'null'){
-            produits.getProducts().then(p=>{
-                setProds(p.slice(0));
-                if (CategoryId > 0){
-                    let cf= [parseInt(CategoryId, 10)];
-                    handleFilterCategory(cf);
-                } else {
-                    handleFilterCategory([]);
-                }
-
-            }).catch(error=>{
-                setAlert({Etat: true, Titre: 'PRODUITS - Error list all products', Type: 'ERROR', Message: error.message});
-                console.log(error);
-            });
-        } else {
-            produits.searchProducts(Search).then(p=>{
-                setProds(p.slice(0)); 
-                handleFilterCategory([]);   
-            }).catch(error=>{
-                setAlert({Etat: true, Titre: 'PRODUITS - Error search products', Type: 'ERROR', Message: error.message});
-                console.log(error);
-            });            
-        }
-    }, [CategoryId, Search]);
+    if (produits.isError){
+        setAlert({Etat: true, Titre: 'PRODUITS - Error list all products', Type: 'ERROR', Message: produits.error.message});
+    }
+    if (produits.isSuccess){
+        setProds(produits.data);
+    }
 
 
     function onFermerAlert(){

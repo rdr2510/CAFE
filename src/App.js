@@ -3,7 +3,8 @@ import Heads from './Components/Communs/Heads';
 import Header from './Components/Communs/Headers';
 import Footer from './Components/Communs/Footers';
 
-import WishLists from './Backends/Wishlist';
+import {GetWishLists} from './Backends/Wishlist';
+import { GetPaniers } from "./Backends/Carts";
 
 import { ModalStyleTheme } from './Components/Communs/Theme';
 import { Alerts } from './Components/Communs/Alerts';
@@ -19,9 +20,6 @@ import Ajout from "./Pages/Ajout";
 import { useEffect, useState } from 'react';
 import ProductDetail from "./Pages/ProductDetail";
 import Paniers from "./Pages/Paniers";
-import { Carts } from "./Backends/Carts";
-
-
 
 function App() {
   
@@ -30,23 +28,22 @@ function App() {
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [panier, setPanier] = useState(0);
     const [wishlist, setWishlist] = useState([]);
+    const getPaniers= GetPaniers();
+    if (getPaniers.isError){
+        setAlert({Etat: true, Titre: 'PANIER - Error list cart', Type: 'ERROR', Message: getPaniers.error.message});
+    } else if (getPaniers.isSuccess){
+        setPanier(getPaniers.data.length);
+    }
+
+    const getWishLists= GetWishLists();
+    if (getWishLists.isError){
+        setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: getWishLists.error.message});
+    } else if (getWishLists.isSuccess){
+        setPanier(getWishLists.data.length);
+    }
 
     useEffect(()=>{
         import ('./ThemeStyle/'+ThemeStyle);
-        const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-        const paniers= new Carts(urlBase);
-        paniers.getAll().then((p)=>{
-            setPanier(p.length);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'PANIER - Error add products', Type: 'ERROR', Message: error.message});
-        });
-
-        const wishlists= new WishLists(urlBase);
-        wishlists.getAll().then((p)=>{
-            setWishlist(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: error.message});
-        });
     }, [ThemeStyle]);
 
 

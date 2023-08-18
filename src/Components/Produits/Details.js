@@ -1,47 +1,42 @@
 import { Alerts } from '../../Components/Communs/Alerts';
-import { useEffect, useState } from 'react';
-import Produits from '../../Backends/Produits';
-import WishLists from '../../Backends/Wishlist';
+import { useState } from 'react';
+import {GetProduit} from '../../Backends/Produits';
+import { AddWishList, GetWishLists } from '../../Backends/Wishlist';
 import FormAddPanier from './FormAddPanier';
 import DetailDescription from './DetailDescription';
 import { Button } from 'react-bootstrap';
 import { GiHearts } from "react-icons/gi";
 
 export default function Detail({id, WishList, onPanier, onWishList}){
-
     const [prod, setProd] =  useState();
-
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
+    const produit = GetProduit(id);
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getProduct(id).then(p=>{
-            setProd(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'PRODUITS DETAIL - Error get detail product', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, [prod, id]);
+    if (produit.isError){
+        setAlert({Etat: true, Titre: 'PRODUITS DETAIL - Error get detail product', Type: 'ERROR', Message: produit.error.message});
+    }
+
+    if (produit.isSuccess){
+        setProd(produit.data);
+    }
 
     function onFermerAlert(){
         setAlert({Etat: false});
     }
 
     function handleWishlist(article){
-        const wishlists= new WishLists(urlBase);
-        wishlists.add(id).then(()=>{
+        const addWishlist= AddWishList(article.id);
+        if (addWishlist.isError){
+            setAlert({Etat: true, Titre: 'ADD WISHLIST - Error add wishlist', Type: 'ERROR', Message: addWishlist.error.message});
+        } else if (addWishlist.isSuccess){
             setAlert({Etat: true, Titre: 'WISHLIST - Ajout liste a souhait', Type: 'SUCCESS', Message: 'Ajout de produit dans la liste a souhait avec succés !  Produit: '+article.name}); 
-            wishlists.getAll().then((p)=>{
-                onWishList(p);
-            }).catch(error=>{
-                setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: error.message});
-            });
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'ADD WISHLIST - Error add wishlist', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
+            const getWishLists= GetWishLists();
+            if (getWishLists.isError){
+                setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: getWishLists.error.message});
+            } else if (getWishLists.isSuccess){
+                onWishList(getWishLists.data);
+            }
+        }
     }
 
     function isExistWishlist(item){

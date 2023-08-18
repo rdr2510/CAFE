@@ -1,28 +1,25 @@
 import Form from 'react-bootstrap/Form';
-import { useState, useEffect } from 'react';
-import Produits from '../../Backends/Produits';
+import { useState } from 'react';
+import {GetProduits} from '../../Backends/Produits';
 import { Alerts } from '../Communs/Alerts';
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
 
 export default function FiltrePrix({onFilter}) {
-
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
 
     const [prix, setPrix] =  useState({min:0, max:0});
     const [checkAllPrix, setcheckAllPrix] =  useState(true);
     const [filter, setFilter]= useState({min:0, max:0});
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
+    const produits = GetProduits();
 
-    useEffect(()=>{
-        const produits= new Produits(urlBase);
-        produits.getProducts().then(p=>{
-            setProds(p);
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'FILTRE CATÉGORIES - Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+    if (produits.isError){
+        setAlert({Etat: true, Titre: 'FILTRE CATÉGORIES - Error list all products', Type: 'ERROR', Message: produits.error.message});
+    }
+
+    if (produits.isSuccess){
+        setProds(produits.data);
+    }
 
     function onFermerAlert(){
         setAlert({Etat: false});
