@@ -54,14 +54,14 @@ export default function Detail({prod}){
             <>
                 <div style={{height: '100%'}} className='mx-4'>
                     <div className='d-flex mb-4'>
-                        <div className='border me-2 px-0 py-0' style={{position: 'relative'}}>
+                        <div className='border border-primary me-2 px-0 py-0' style={{position: 'relative'}}>
                             <div className={prod.promotion?'d-block w-100':'d-none'} style={{position: 'absolute'}}>
                                 <Badge bg='danger' className='fs-2'>Rabais {prod.promotion?prod.promotion:0}%</Badge>
                             </div>
                             <img src={prod.data?prod.data.image:''} alt="" style={{width: '40rem'}} className='py-0 px-0'/>
                         </div>
 
-                        <div className='border ms-2 px-5 py-4 w-100'>
+                        <div className='border border-primary ms-2 px-5 py-4 w-100'>
                             <h1 className='mb-4'>{prod.data?prod.data.name:''}</h1>
                             <h3 className='fw-bold'>{new Intl.NumberFormat().format(prod.data?prod.data.price:'')} $</h3>
                             <p className='my-4'>{prod.data?prod.data.description:''}</p>

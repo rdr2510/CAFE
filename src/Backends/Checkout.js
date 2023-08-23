@@ -6,7 +6,18 @@ const urlBase = 'https://insta-api-api.0vxq7h.easypanel.host/';
 export function GetCheckouts(){
     async function getCheckouts() {
         const { data } = await axios.get(urlBase+'checkout');
-        return data;
+        let checkouts= {cartId: 0, products: [], subTotal: 0, taxe:0, grandTotal: 0};
+        checkouts.cartId=  data.cartId;
+        checkouts.products=  data.products.slice(0);
+        checkouts.subTotal= 0;
+        checkouts.taxe= 0;
+        checkouts.grandTotal= 0;
+        for (const item of data.products){
+            checkouts.subTotal= checkouts.subTotal + (item.discountedPrice * item.quantity); 
+        }
+        checkouts.taxe= checkouts.subTotal * 14.975 / 100;
+        checkouts.grandTotal= checkouts.subTotal + checkouts.taxe;
+        return checkouts;
     }
     return useQuery(['checkout'], getCheckouts);
 }

@@ -3,26 +3,22 @@ import {Table, Button, Form, Badge, Spinner, FloatingLabel} from 'react-bootstra
 import {GetCheckouts} from '../Backends/Checkout';
 import { Alerts } from '../Components/Communs/Alerts';
 import Spinners from "../Components/Communs/Spinners";
+import {  BsCheck2All } from "react-icons/bs";
+import {  IoArrowBackSharp } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 export default function Checkout(){
     const getCheckouts= GetCheckouts();
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
-    const checkouts= useRef({cartId: 0, products: [], subTotal: 0, taxe:0, grandTotal: 0});
+    const [checkouts, setCheckouts]= useState({cartId: 0, products: [], subTotal: 0, taxe:0, grandTotal: 0});
+    const [validated, setValidated] = useState(false);
+    const navigate= useNavigate();
 
     useEffect(()=>{
         if (getCheckouts.isError){
             setAlert({Etat: true, Titre: 'PANIER - Update item', Type: 'ERROR', Message: getCheckouts.error.message});
         } else if (getCheckouts.isSuccess){
-            checkouts.current.cartId=  getCheckouts.data.cartId;
-            checkouts.current.products=  getCheckouts.data.products.slice(0);
-            checkouts.current.subTotal= 0;
-            checkouts.current.taxe= 0;
-            checkouts.current.grandTotal= 0;
-            for (const item of getCheckouts.data.products){
-                checkouts.current.subTotal= checkouts.current.subTotal + (item.discountedPrice * item.quantity); 
-            }
-            checkouts.current.taxe= checkouts.current.subTotal * 14.975 / 100;
-            checkouts.current.grandTotal= checkouts.current.subTotal + checkouts.current.taxe;
+            setCheckouts(getCheckouts.data);
         }
     }, [getCheckouts, checkouts]);
 
@@ -46,11 +42,21 @@ export default function Checkout(){
         }
     }
 
+    const handleSubmit = (event) => {
+        const form = event.currentTarget;
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+    
+        setValidated(true);
+      };
+
     return(
         <>
             <div style={{height: '100%'}}>
                 <div className="d-flex" style={{height: 'calc(100vh - 200px)', overflowY: 'scroll', overflowX: 'hidden'}}>
-                    <div className="w-50 d-flex flex-column align-items-center mx-4">
+                    <Form noValidate validated={validated} onSubmit={handleSubmit} className="w-50 d-flex flex-column align-items-center mx-4">
                         <div className="w-100">
                             <h4 className="mt-5 w-100 text-center">INFORMATION DE CONTACT</h4>
                             <div className="d-flex flex-row w-100">
@@ -66,7 +72,7 @@ export default function Checkout(){
                         </div>
 
                         <div className="w-100">
-                            <h4 className="mt-5 w-100 text-center">ADRESSE DE LIVRAISON</h4>
+                            <h4 className="mt-5 w-100 text-center">ADRESSE</h4>
                             <div className="d-flex flex-row w-100">
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
                                     <Form.Control required type="text" placeholder="Nom" />
@@ -128,9 +134,27 @@ export default function Checkout(){
                                 </Form.Group>
                             </div>
                         </div>
-                    </div>
+
+                        <div className="w-100">
+                            <h4 className="mt-5 w-100 text-center">MÉTHODE DE LIVRAISON</h4>
+                            <div className="d-flex flex-column w-100 border border-1 border-secondary rounded-3 mt-4 px-4 py-2">
+                                <Form.Group className="mx-2 my-2 w-100" >
+                                    <Form.Check className="my-2" type="radio" label= 'Standard - 10$' name="livraison" checked/>
+                                    <Form.Check className="my-2" type="radio" label= 'Express - 20$' name="livraison"/>
+                                    <Form.Check className="my-2" type="radio" label= 'Pickup - Gratuit' name="livraison"/>
+                                </Form.Group>
+                                <h5>Livraison gratuit pour un achat plus de 100$</h5>
+                            </div>
+                        </div>
+                        <div className="w-100 d-flex justify-content-between my-4">
+                            <Button variant="secondary" onClick={()=>navigate('/Carts')}><IoArrowBackSharp className="me-2" style={{fontSize:"25px"}} />Précédent</Button>
+                            <Button variant="success" type="submit"><BsCheck2All className="me-2" style={{fontSize:"25px"}} />Suivant</Button>
+                        </div>
+                    </Form>
+                    
                     <div className='mt-4 border-primary' style={{width: '1px', height: '100%', border: '1px solid'}}></div>
-                    <div className="w-50 mx-4">
+                    
+                    <div className="w-50 mx-4" style={{height: '100%'}}>
                         <Table hover responsive className="border-dark">
                             <thead>
                                 <tr className="border-0">
@@ -139,7 +163,7 @@ export default function Checkout(){
                                 </tr>
                             </thead>
                             <tbody>
-                                {checkouts.current.products.map(item=>(
+                                {checkouts.products.map(item=>(
                                     <tr className="border-0">
                                         <td>
                                             <div className="d-flex">
@@ -182,15 +206,15 @@ export default function Checkout(){
                             <tfoot>
                                     <tr className="active border-0 border-primary">
                                         <td className="fw-bold" >SOUS-TOTAL : </td>
-                                        <td className="text-center"><h6 className="text-dark fw-bold">{new Intl.NumberFormat().format(checkouts.current.subTotal)} $</h6></td>
+                                        <td className="text-center"><h6 className="text-dark fw-bold">{new Intl.NumberFormat().format(checkouts.subTotal)} $</h6></td>
                                     </tr>
                                     <tr className="active border-0 border-primary">
                                         <td className="fw-bold" >TPS (5%) + TVQ (9.975%) : </td>
-                                        <td className="text-center"><span className="fs-6">{new Intl.NumberFormat().format(checkouts.current.taxe)} $</span></td>
+                                        <td className="text-center"><span className="fs-6">{new Intl.NumberFormat().format(checkouts.taxe)} $</span></td>
                                     </tr>
                                     <tr className="active border-0 border-primary">
                                         <td className="fw-bold"><h5 className="align-middle my-0 fw-bold">GRAND-TOTAL : </h5></td>
-                                        <td className="text-center align-middle"><h4 className="align-middle my-0 "><Badge>{new Intl.NumberFormat().format(checkouts.current.grandTotal)} $</Badge></h4></td>
+                                        <td className="text-center align-middle"><h4 className="align-middle my-0 "><Badge>{new Intl.NumberFormat().format(checkouts.grandTotal)} $</Badge></h4></td>
                                     </tr>
                             </tfoot>
                         </Table>
