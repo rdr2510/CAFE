@@ -11,18 +11,30 @@ export function GetPaniers(){
     return useQuery(['carts'], getPaniers);
 }
 
-export async function UpdatePanier(productId, quantity){
-    return useMutation(await axios.put(urlBase+'cart/modify-product-quantity/'+productId, {quantity: quantity}));
+export function UpdatePanier(){
+    async function updatePanier({productId, quantity}){
+        return await axios.patch(urlBase+'cart/modify-product-quantity/'+productId, {quantity: quantity});
+    }
+    return useMutation(updatePanier);
 }
 
-export async function AddPanier(productId, quantity){
-    return useMutation(await axios.post(urlBase+'cart/add-product', {productId: productId, quantity: quantity}));
+export function AddPanier(){
+    async function addPanier({productId, quantity}){
+        return await axios.post(urlBase+'cart/add-product', {productId: productId, quantity: quantity})
+    }
+    return useMutation(addPanier);
 }
 
-export async function DeletePanier(productId){
-    return useMutation(await axios.delete(urlBase+'cart/remove-product/'+productId));
+export function DeletePanier(){
+    async function deletePanier(productId) {
+        return await axios.delete(urlBase+'cart/remove-product/'+productId)
+    }
+    return useMutation(deletePanier);
 }
 
-export async function ClearPanier(){
-    return useMutation(await axios.delete(urlBase+'cart/clear'));
+export function ClearPanier(){
+    async function clearPanier() {
+        return await axios.delete(urlBase+'cart/clear');
+    }
+    return useMutation(clearPanier);
 }

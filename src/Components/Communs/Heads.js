@@ -3,27 +3,51 @@ import {Container, Nav, Navbar, Form, Button} from 'react-bootstrap';
 import { useNavigate } from "react-router-dom";
 import { GiCoffeeBeans } from "react-icons/gi";
 import { BiSearchAlt } from "react-icons/bi";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {RechercheProduits} from '../../Backends/Produits';
+import Spinners from './Spinners';
+import { Alerts } from '../Communs/Alerts';
 
-
-export default function Heads() {
+export default function Heads({onSearch}) {
     const navigate= useNavigate();
     const [etatButton, setEtatButton] = useState(false);
-
+    const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     let [search, setSearch]= useState('');
 
+    const searchProduits = RechercheProduits();
+
+    useEffect(()=>{
+        if (searchProduits.isError){
+            setAlert({Etat: true, Titre: 'RECHERCHE PRODUIT - Error search products', Type: 'ERROR', Message: searchProduits.error.message});
+            searchProduits.reset();
+        } else if (searchProduits.isSuccess){
+            onSearch(searchProduits);
+            navigate('/Products/true/false/false');
+            searchProduits.reset();
+        }
+    },[searchProduits, onSearch]);
+
+    if (searchProduits.isLoading){
+        return <Spinners Message={'Recherche en cours ...'} />
+    }
+
+    function onFermerAlert(){
+        setAlert({Etat: false});
+    }
+
     function handleClickSearch(){
-        navigate('/Products/0/'+search);
+        searchProduits.mutate({motcle: search});
         search= '';
         setSearch(search);
+        setEtatButton(true);
     }
 
     function handleChangeSearch(event){
         setSearch(event.target.value);
-        if (event.target.value !== ''){
-            setEtatButton(false);
-        } else {
+        if (event.target.value === '' || event.target.value === ' '){
             setEtatButton(true);
+        } else {
+            setEtatButton(false);
         }
     }
 
@@ -62,6 +86,8 @@ export default function Heads() {
                         </Navbar.Collapse>
                     </Container>
                 </Navbar>
+
+                <Alerts Etat={Alert.Etat} Type={Alert.Type} Titre={Alert.Titre}  Message={Alert.Message} onFermer= {onFermerAlert}/>
         </>
     );
   }

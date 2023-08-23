@@ -1,27 +1,44 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect, useContext} from 'react';
 import './Styles/produits.css';
-import {Card, Badge, Button} from 'react-bootstrap';
+import {Card, Badge, Button, Spinner} from 'react-bootstrap';
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
 import { MdCancel } from "react-icons/md";
 import { IoIosHeartDislike } from "react-icons/io";
-import { GetWishLists, DeleteWishList, ClearWishList } from '../Backends/Wishlist';
+import { DeleteWishList, ClearWishList } from '../Backends/Wishlist';
 import { Alerts } from '../Components/Communs/Alerts';
 import { ModalConfirmation } from "../Components/Communs/DlgConfirmation";
 import Navigation from '../Components/Produits/Navigation';
 
+import { WishContext } from '../App';
 
-export default function WishList({onWishList}){
-    const [wishlist, setWishlist] = useState([]);
+
+export default function WishList(){
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [Modal, setModal]= useState({Action:-1, Etat: false, Titre:'', Message:'',
                                         TxtBtnConfirmer:'', TxtBtnAnnuler:'', Type:'', Data: Object});
-    const getWishLists= GetWishLists();
-    if (getWishLists.isError){
-        setAlert({Etat: true, Titre: 'WISHLIST - Error list wishlist', Type: 'ERROR', Message: getWishLists.error.message});
-    } else if (getWishLists.isSuccess){
-        setWishlist(getWishLists.data);
-        onWishList(getWishLists.data);
-    }
+    const getWishLists = useContext(WishContext);
+    const deleteWishList= DeleteWishList();
+    const clearWishList= ClearWishList();
+
+    useEffect(()=>{
+        if (deleteWishList.isError){
+            setAlert({Etat: true, Titre: 'WISHLIST - Error delete item', Type: 'ERROR', Message: deleteWishList.error.message});
+            deleteWishList.reset();
+        } else if (deleteWishList.isSuccess){
+            setAlert({Etat: true, Titre: 'WISHLIST - Suppression article', Type: 'SUCCESS', Message: 'Suppression de l\'article "'+Modal.Data.name+'" dans le wishlist avec succés !'});
+            deleteWishList.reset();
+            getWishLists.refetch();
+        }
+
+        if (clearWishList.isError){
+            setAlert({Etat: true, Titre: 'WISHLIST - Error clear item', Type: 'ERROR', Message: clearWishList.error.message});
+            clearWishList.reset();
+        } else if (clearWishList.isSuccess){
+            setAlert({Etat: true, Titre: 'WISHLIST - Vidange de la liste', Type: 'SUCCESS', Message: 'Le wishlist a été vidé avec succés !'});
+            clearWishList.reset();
+            getWishLists.refetch();
+        }
+    }, [deleteWishList, clearWishList, Modal])
 
     function onFermerAlert(){
         setAlert({Etat: false});
@@ -29,7 +46,7 @@ export default function WishList({onWishList}){
 
     function handleDelete(item){
         setModal({Action: 1, Etat: true, Type: 'ERROR', Titre: 'WISHLIST - SUPPRESSION WISHLIST...', 
-        Message: 'Vous voulez vraiment supprimer cet article "'+item.name+'" ?', TxtBtnConfirmer:'Supprimer', TxtBtnAnnuler: 'Annuler', Data: item});
+        Message: 'Vous voulez vraiment supprimer cet article "'+item.name+'" ?', TxtBtnConfirmer:'Supprimer', TxtBtnAnnuler: 'Annuler', Data: Object.assign({}, item)});
     }
 
     function handleClear(){
@@ -40,24 +57,16 @@ export default function WishList({onWishList}){
     function handleModalConfirmer(Action){
       switch(Action){
           case 1: // suppression article
-                const deleteWishList= DeleteWishList(Modal.Data.id);
-                if (deleteWishList.isError){
-                    setAlert({Etat: true, Titre: 'WISHLIST - Error Total item on wishlist', Type: 'ERROR', Message: deleteWishList.error.message});
-                }  else if (deleteWishList.isSuccess){
-                    setAlert({Etat: true, Titre: 'WISHLIST - Suppression de liste souhait', Type: 'SUCCESS', Message: 'Suppression de liste a souhait "'+Modal.Data.name+'" avec succés !'});               
-                } 
+                deleteWishList.mutate({productId: Modal.Data.id});
                 break;
           case 2: // vidage du panier
-                const clearWishList= ClearWishList();
-                if (clearWishList.isError){
-                    setAlert({Etat: true, Titre: 'WISHLIST - Error clear item', Type: 'ERROR', Message: clearWishList.error.message});
-                }  else if (clearWishList.isSuccess){
-                    setAlert({Etat: true, Titre: 'PANIER - Vidange du panier', Type: 'SUCCESS', Message: 'La list a été vidé avec succés !'});
-                } 
+              clearWishList.mutate({});  
               break;
           default:
       }
-      setModal({Action: 0, Etat: false});
+      Modal.Action= 0;
+        Modal.Etat= false;
+        setModal(Modal);
     }
 
     function handleModalAnnuler(Action){
@@ -70,10 +79,13 @@ export default function WishList({onWishList}){
                 <div style={{height: 'calc(100vh - 200px)', overflowY: 'scroll', overflowX: 'hidden'}}>
                     <div className= 'd-flex align-items-center justify-content-between'>
                         <Navigation nav={['accueil', 'wishlist']} />
-                        <Button disabled={wishlist.length===0?true:false} onClick={()=>handleClear()} className='text-nowrap' variant='danger'><IoIosHeartDislike className= 'me-2'/>Vider la liste</Button>
+                        <Button disabled={clearWishList.isLoading?true:getWishLists.data.length===0?true:false} onClick={()=>handleClear()} className='text-nowrap' variant='danger'>
+                            <Spinner className={clearWishList.isLoading?'d-block':'d-none'} variant='dark' as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                            <IoIosHeartDislike className= {clearWishList.isLoading?'d-none':'d-block me-2'}/>Vider la liste
+                        </Button>
                     </div>
                     <div className='d-flex flex-row flex-wrap justify-content-evenly'>
-                    {wishlist.map(item=>(
+                    {getWishLists.data.map(item=>(
                               <Card  key={item.id} className='mx-2 my-3 border-0 border-top border-start border-primary border-3 rounded-4' style={{ cursor: 'pointer', width: '16rem', height: '20rem', maxHeight: '20rem',
                                   boxShadow: '15px 10px 15px 0px rgba(0,0,0,0.2)' }}>
                                   <Card.Img className='d-flex align-items-start mt-2' variant="top" src= {item.image} style={{width: '100%', height: '40%', objectFit: 'contain'}} />
@@ -85,13 +97,15 @@ export default function WishList({onWishList}){
                                       <div className='d-flex justify-content-center'>
                                           <h5 className='my-0'><Badge className='bg-warning'><RiMoneyDollarCircleFill className='me-2' style={{fontSize:'1.5rem'}} />{new Intl.NumberFormat().format(item.price)} $</Badge></h5>
                                       </div>
-                                      <div className='d-flex justify-content-between'>
+                                      <div className='my-2 d-flex justify-content-between align-items-center'>
                                           <div div className='d-flex justify-content-center'>
                                               <span className='fw-bold'>{item.category.name}</span>
                                           </div>
 
-                                          <Button className='py-0' variant= 'danger' onClick={()=>handleDelete(item)} ><MdCancel style={{fontSize:'1.5rem'}} /></Button>
-                                          
+                                          <Button className='py-1' variant= 'danger' onClick={()=>handleDelete(item)} >                                                
+                                                <MdCancel style={{fontSize:'1.5rem'}} />
+                                          </Button>
+
                                           <div className='d-flex justify-content-center'>
                                               <span style={{color: item.color.hexCode}}>{item.color.name}</span>
                                               <span className='px-2 ms-2' style={{border: '1px solid', color: item.color.hexCode, backgroundColor: item.color.hexCode,}}>C</span>

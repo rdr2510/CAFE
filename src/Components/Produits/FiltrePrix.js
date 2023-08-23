@@ -1,5 +1,5 @@
 import Form from 'react-bootstrap/Form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {GetProduits} from '../../Backends/Produits';
 import { Alerts } from '../Communs/Alerts';
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
@@ -13,13 +13,13 @@ export default function FiltrePrix({onFilter}) {
     const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
     const produits = GetProduits();
 
-    if (produits.isError){
-        setAlert({Etat: true, Titre: 'FILTRE CATÉGORIES - Error list all products', Type: 'ERROR', Message: produits.error.message});
-    }
-
-    if (produits.isSuccess){
-        setProds(produits.data);
-    }
+    useEffect(()=>{
+        if (produits.isError){
+            setAlert({Etat: true, Titre: 'FILTRE CATÉGORIES - Error list all products', Type: 'ERROR', Message: produits.error.message});
+        } else if (produits.isSuccess){
+            setProds(produits.data);
+        }
+    }, [produits, prods])
 
     function onFermerAlert(){
         setAlert({Etat: false});

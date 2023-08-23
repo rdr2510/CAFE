@@ -3,32 +3,74 @@ import ListProduits from "../Components/Produits/Produits";
 import FiltrePrix from '../Components/Produits/FiltrePrix';
 import FiltreCouleur from "../Components/Produits/FiltreCouleur";
 import FiltreCategorie from "../Components/Produits/FiltreCategorie";
-import {GetProduits, RechercheProduits} from '../Backends/Produits';
 import { Alerts } from '../Components/Communs/Alerts';
-import { useState } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { useParams } from 'react-router';
+import { ProductContext, PromotionContext } from '../App';
 
-export default function Products(props){
-    let [prods, setProds] =  useState([]);
-    let [prodsFilter, setProdsFilter] =  useState([]);
-    const [filter, setFilter] = useState({category: [], color: [], price:{min:0, max:0}});
+export default function Products({SearchProduits}){
+    let prods= useRef([]);
+    let prodsFilter =  useRef([]);
+    let filter = useRef({category: [], color: [], price:{min:0, max:0}});
     const [naviger, setNaviger] = useState(['accueil', 'produits']);
-    const {Search} = useParams();
+    let paramQuery = useParams();
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
-    let produits;
+    const [FilterCategorie, setFilterCategorie]= useState(-1);
+    const Promotions= useRef([]);
 
-    if (Search === undefined || Search === 'null'){
-        produits = GetProduits();
-    } else {
-        produits = RechercheProduits(Search);
+    const getProduits = useContext(ProductContext);
+    const getPromotions= useContext(PromotionContext);
+
+    let valueRef= useRef([]);
+    
+    function promote(produits){
+        Promotions.current= [];
+        for (const item of produits.data){
+            const isExist = (element) => (element.productId === item.id);
+            const index= getPromotions.data.findIndex(isExist);
+            if (index ===-1){
+                Promotions.current.push({data: item, promotion: 0});
+            } else {
+                Promotions.current.push({data: item, promotion: getPromotions.data[index].discountPercent});
+            }
+        }
     }
-        
-    if (produits.isError){
-        setAlert({Etat: true, Titre: 'PRODUITS - Error list all products', Type: 'ERROR', Message: produits.error.message});
-    }
-    if (produits.isSuccess){
-        setProds(produits.data);
-    }
+
+    useEffect(()=>{
+        function isFilterAll(){
+            if (filter.current.color.length ===0 && filter.current.category.length === 0 && filter.current.price.min === 0 && filter.current.price.max === 0){
+                return true;
+            } else return false;
+        }
+
+        if (paramQuery.Search === 'false' && paramQuery.Categorie === 'false' && paramQuery.All === 'true' && valueRef.current.length !== prodsFilter.current.length ){
+            filter.current= {category: [], color: [], price:{min:0, max:0}};
+            setNaviger(['accueil', 'produits']);
+            getProduits.refetch();
+            getPromotions.refetch();
+            promote(getProduits);
+            prods.current= Promotions.current.slice(0);
+            prodsFilter.current= Promotions.current.slice(0);
+            valueRef.current= prodsFilter.current.slice(0);
+        } else if (paramQuery.Search === 'false' && isFilterAll() && paramQuery.Categorie === 'false'){
+            setNaviger(['accueil', 'produits']);
+            getProduits.refetch();
+            getPromotions.refetch();
+            promote(getProduits);
+            prods.current= Promotions.current.slice(0);
+            prodsFilter.current= Promotions.current.slice(0);
+        } else if (paramQuery.Search === 'true' && paramQuery.All === 'false'){
+            promote(SearchProduits);
+            prods.current= Promotions.current.slice(0);
+            prodsFilter.current= Promotions.current.slice(0);
+        } else if (paramQuery.Categorie !== 'false'){
+            promote(getProduits);
+            prods.current= Promotions.current.slice(0);
+            prodsFilter.current= Promotions.current.slice(0);
+            setFilterCategorie(parseInt(paramQuery.Categorie));
+            handleFilterCategory([parseInt(paramQuery.Categorie)]);
+        }            
+    }, [filter, paramQuery, prods, prodsFilter, Promotions, SearchProduits]);
 
 
     function onFermerAlert(){
@@ -40,7 +82,7 @@ export default function Products(props){
 
         if (colors.length > 0){
             for (const item of produit1){
-                const isExist = (element) => element === item.color.id;
+                const isExist = (element) => element === item.data.color.id;
                 const index= colors.findIndex(isExist);
                 if (index !== -1){
                     produits2.push(item);
@@ -55,7 +97,7 @@ export default function Products(props){
 
         if (price.min > 0 || price.max > 0){
             for (const item of produit1){
-                if (price.min < item.price && item.price < price.max){
+                if (price.min < item.data.price && item.data.price < price.max){
                     produits2.push(item);
                 }
             }
@@ -69,7 +111,7 @@ export default function Products(props){
 
         if (category.length > 0){
             for (const item of produit1){
-                const isExist = (element) => element === item.category.id;
+                const isExist = (element) => element === item.data.category.id;
                 const index= category.findIndex(isExist);
                 if (index !== -1){
                     produits2.push(item);
@@ -80,16 +122,17 @@ export default function Products(props){
     }
 
 
-    function handleFilterCategory(filtre){
-        filter.category= filtre;
-        setFilter(filter);
+    function handleFilterCategory(filtre, filterManual){
+        if (filterManual){
+            setFilterCategorie(-1);
+        }
+        filter.current.category= filtre;
         
-        prodsFilter= prods.slice(0);
-        setProdsFilter(prodsFilter);
+        prodsFilter.current= prods.current.slice(0);
 
-        let p= filterCategory(prodsFilter.slice(0), filter.category);
-        p= filterPrice(p.slice(0), filter.price);
-        p= filterColor(p.slice(0), filter.color);
+        let p= filterCategory(prodsFilter.current.slice(0), filter.current.category);
+        p= filterPrice(p.slice(0), filter.current.price);
+        p= filterColor(p.slice(0), filter.current.color);
 
         const isExist = (element) => element === 'categories';
         const index= naviger.findIndex(isExist);
@@ -105,21 +148,18 @@ export default function Products(props){
             }    
         }
 
-        prodsFilter= p.slice(0);
-        setProdsFilter(p.slice(0));
+        prodsFilter.current= p.slice(0);
     }
 
     function handleFilterPrice(filtre){
-        filter.price.min= filtre.min;
-        filter.price.max= filtre.max;
-        setFilter(filter);
+        filter.current.price.min= filtre.min;
+        filter.current.price.max= filtre.max;
 
-        prodsFilter= prods.slice(0);
-        setProdsFilter(prodsFilter);
+        prodsFilter.current= prods.current.slice(0);
 
-        let p= filterCategory(prodsFilter.slice(0), filter.category);
-        p= filterPrice(p.slice(0), filter.price);
-        p= filterColor(p.slice(0), filter.color);
+        let p= filterPrice(prodsFilter.slice(0), filter.current.price);
+        p= filterCategory(p.slice(0), filter.current.category);
+        p= filterColor(p.slice(0), filter.current.color);
 
         const isExist = (element) => element === 'prix';
         const index= naviger.findIndex(isExist);
@@ -135,20 +175,17 @@ export default function Products(props){
             }    
         }
 
-        prodsFilter= p.slice(0);
-        setProdsFilter(p.slice(0));
+        prodsFilter.current= p.slice(0);
     }
 
     function handleFilterColor(filtre){
-        filter.color= filtre;
-        setFilter(filter);
+        filter.current.color= filtre;
 
-        prodsFilter= prods.slice(0);
-        setProdsFilter(prodsFilter);
+        prodsFilter.current= prods.current.slice(0);
 
-        let p= filterCategory(prodsFilter.slice(0), filter.category);
-        p= filterPrice(p.slice(0), filter.price);
-        p= filterColor(p.slice(0), filter.color);
+        let p= filterColor(prodsFilter.slice(0), filter.current.color);
+        p= filterPrice(p.slice(0), filter.current.price);
+        p= filterCategory(p.slice(0), filter.current.category);
 
         const isExist = (element) => element === 'couleurs';
         const index= naviger.findIndex(isExist);
@@ -164,8 +201,7 @@ export default function Products(props){
             }    
         }
 
-        prodsFilter= p.slice(0);
-        setProdsFilter(p.slice(0));
+        prodsFilter.current= p.slice(0);
     }
 
     return(
@@ -175,12 +211,12 @@ export default function Products(props){
                     <Navigation nav={naviger} />
                     <div className="row mx-4">
                         <div className="col-lg-3 mx-0 px-0">
-                            <FiltreCategorie onFilter={handleFilterCategory}/>
+                            <FiltreCategorie onFilter={handleFilterCategory} FilterId={FilterCategorie} filterAll={paramQuery.All==='true'?true:false}/>
                             <FiltrePrix onFilter={handleFilterPrice} />
                             <FiltreCouleur onFilter={handleFilterColor} />
                         </div>
                         <div className="col-lg-9 mx-0 px-0">
-                            <ListProduits lists= {prodsFilter} />
+                            <ListProduits lists= {prodsFilter.current} />
                         </div>
                     </div>
                 </div>

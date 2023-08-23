@@ -11,14 +11,23 @@ export function GetWishLists(){
     return useQuery(['wishlist'], getWishLists);
 }
 
-export async function AddWishList(productId){
-    return useMutation(await axios.post(urlBase+'wishlist/add-product/'+productId));
+export function AddWishList(){
+    async function addWishlist({productId}){
+        return await axios.post(urlBase+'wishlist/add-product', {productId: productId})
+    }
+    return useMutation(addWishlist);
 }
 
-export async function DeleteWishList(productId){
-    return useMutation(await axios.delete(urlBase+'wishlist/delete-product/'+productId));
+export function DeleteWishList(){
+    async function deleteWishList({productId}) {
+        return await axios.delete(urlBase+'wishlist/delete-product/'+productId)
+    }
+    return useMutation(deleteWishList);
 }
 
-export async function ClearWishList(){
-    return useMutation(await axios.delete(urlBase+'wishlist/clear'));
+export function ClearWishList(){
+    async function clearWishList() {
+        return await axios.delete(urlBase+'wishlist/clear')
+    }
+    return useMutation(clearWishList);
 }

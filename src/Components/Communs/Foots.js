@@ -29,7 +29,7 @@ export default function Foots(){
                 <div className='d-flex flex-column'>
                     <h5>ACCÉS RAPIDE</h5>
                     <Link to='/Home' className='text-dark my-2'><MdHome className=' me-3 text-dark' style={{fontSize:"25px"}} />Accueil</Link>
-                    <Link to='/Products' className='text-dark my-2'><GiCoffeeCup className=' me-3 text-dark' style={{fontSize:"25px"}} />Nos produits</Link>
+                    <Link to='/Products/false/false/true' className='text-dark my-2'><GiCoffeeCup className=' me-3 text-dark' style={{fontSize:"25px"}} />Nos produits</Link>
                     <Link to='/#' className='text-dark my-2'><BiCategoryAlt className=' me-3 text-dark' style={{fontSize:"25px"}} />Catégories</Link>
                     <Link to='/Abouts' className='text-dark my-2'><BsFillExclamationCircleFill className=' me-3 text-dark' style={{fontSize:"25px"}} />A propos</Link>
                 </div>

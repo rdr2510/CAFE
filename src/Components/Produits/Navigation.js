@@ -24,8 +24,8 @@ export default function Navigation({nav}) {
                 break;
             case 'produits':
                 b={}
-                b.name= 'Produits';
-                b.path= '/Products';
+                b.name= 'Tous les Produits';
+                b.path= '/Products/false/false/true';
                 b.active= true;
                 b.icon= <GiCoffeeCup className="me-1 fs-4"/>;
                 breadcrumd.push(Object.create(b));

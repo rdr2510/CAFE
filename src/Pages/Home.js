@@ -1,8 +1,8 @@
 import Slider from '../Components/Communs/Carousel';
 import Infos from '../Components/Home/Infos';
 import Categories from '../Components/Categories/Categories';
-import RecentsProducts from '../Components/Produits/ProduitsRecents';
 import Foots from '../Components/Communs/Foots';
+import Promotions from '../Components/Home/Promotions';
 
 export default function Home(){
     return(
@@ -10,8 +10,8 @@ export default function Home(){
             <div style={{height: '100%'}}>
                 <div style={{height: 'calc(100vh - 100px)', overflowY: 'scroll'}}>
                     <Slider/>
+                    <Promotions />
                     <Categories />
-                    <RecentsProducts />
                     <Infos />
                     <Foots />
                 </div>

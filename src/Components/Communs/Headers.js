@@ -8,25 +8,21 @@ import { FiCoffee } from "react-icons/fi";
 import { MdStyle, MdCoffeeMaker } from "react-icons/md";
 import { IoLogOut } from "react-icons/io5";
 import { CgToolbarBottom } from "react-icons/cg";
-import { GetCategories } from '../../Backends/Produits';
+import { CategorieContext } from '../../App';
 import { Alerts } from './Alerts';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { CartContext, WishContext } from '../../App';
 
 import './Styles/headers.css';
 
 
-export default function Header({panier, WishList, onMonProfil, onUserDisConnect, onChangeThemeStyle}) {
+export default function Header({onMonProfil, onUserDisConnect, onChangeThemeStyle}) {
     const navigate= useNavigate();
-
-    const [categories, setCategories] =  useState([]);
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
-    
-    const getCategories= GetCategories();
-    if (getCategories.isError){
-        setAlert({Etat: true, Titre: 'Error list all categories', Type: 'ERROR', Message: getCategories.error.message});
-    } else if (getCategories.isSuccess){
-        setCategories(getCategories.data);
-    }
+
+    const getPaniers = useContext(CartContext);
+    const getWishLists = useContext(WishContext);
+    const getCategories= useContext(CategorieContext);
 
     const iconCategory=(name)=>{
         switch(name){
@@ -59,12 +55,12 @@ export default function Header({panier, WishList, onMonProfil, onUserDisConnect,
                         <Navbar.Collapse id="navbarScroll">
                             <Nav className="me-auto border-0">
                                 <NavDropdown align='start' title={<span><BiCategoryAlt className="mx-2" style={{fontSize:'40px'}}/><span>CATÉGORIES</span></span>} className='bg-black mx-lg-5 px-lg-5'>
-                                    {categories.map(item=>(
-                                        <NavDropdown.Item onClick={()=>{navigate('/Products/'+item.id+'/null')}} key={item.id} data-toggle-second="tooltip" title= {item.description} data-placement="right" aria-haspopup="true" aria-expanded="false"  className='d-flex align-items-center w-100'>{iconCategory(item.name)} {item.name}</NavDropdown.Item>                                        
+                                    {getCategories.data.map(item=>(
+                                        <NavDropdown.Item onClick={()=>{navigate('/Products/false/'+item.id+'/false')}} key={item.id} data-toggle-second="tooltip" title= {item.description} data-placement="right" aria-haspopup="true" aria-expanded="false"  className='d-flex align-items-center w-100'>{iconCategory(item.name)} {item.name} ({item.produits.length}) produits</NavDropdown.Item>                                        
                                     ))}
                                 </NavDropdown>
                                 
-                                    <Nav.Link onClick={()=>{navigate('/PRODUCTS')}} className='NavLink  mx-3 d-flex justify-content-start text-black align-items-center flex-wrap'><GiCoffeeCup className="mx-2" style={{fontSize:'40px'}}/>PRODUITS</Nav.Link>
+                                    <Nav.Link onClick={()=>{navigate('/Products/false/false/true')}} className='NavLink  mx-3 d-flex justify-content-start text-black align-items-center flex-wrap'><GiCoffeeCup className="mx-2" style={{fontSize:'40px'}}/>PRODUITS</Nav.Link>
                                     <Nav.Link onClick={()=>{navigate('/ABOUTS')}} className='NavLink d-flex justify-content-start align-items-center flex-wrap'><BsFillExclamationCircleFill className="mx-2" style={{fontSize:'40px'}} />A PROPOS</Nav.Link>
                                 
                                 <NavDropdown align='start' title={<span><GiCoffeeCup className="mx-2" style={{fontSize:'40px'}}/><span>CAFE</span></span>} className='bg-black mx-lg-5 px-lg-5'>
@@ -74,15 +70,9 @@ export default function Header({panier, WishList, onMonProfil, onUserDisConnect,
                             
                             </Nav>
                             <Nav className="d-flex justify-content-start">
-                                <Nav.Link disabled={WishList.length===0?true:false } onClick={()=>{navigate('/Wishlist/')}}  className='d-flex justify-content-start align-items-center flex-wrap'><Badge bg="black"><GiHearts className="mx-1 text-danger" style={{fontSize:'25px'}} /><span className='text-primary d-flex align-items-end justify-content-end'>{WishList.length}</span></Badge><span className='d-lg-none ms-2'>COUP DE COEUR</span></Nav.Link>
-                                <Nav.Link disabled={panier===0?true:false } onClick={()=>{navigate('/Carts/')}} className='d-flex justify-content-start align-items-center flex-wrap'><Badge bg="black"><BsCart4 className="mx-1 text-ligth" style={{fontSize:'25px'}} /><span className='text-primary d-flex align-items-end justify-content-end'>{panier}</span></Badge><span className='d-lg-none ms-2'>PANIER</span></Nav.Link>
-                                <NavDropdown align='end' title={<span><BiSolidUserCircle style={{fontSize:"40px"}} /><span className="d-lg-none">UTILISATEURS</span></span>} id="navbarScrollingDropdown" className='fw-bold mx-0 my-0'>
-                                    <NavDropdown.Item disabled href="#" onClick={onMonProfil} className='d-flex align-items-center'><BiSolidUserRectangle className="me-2" style={{fontSize:'25px'}}/>Mon Profil</NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item href="#" onClick={onChangeThemeStyle} className='d-flex align-items-center'><MdStyle className="me-2" style={{fontSize:'25px'}} />Thème Style</NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item disabled href="#" onClick={onUserDisConnect} className='fw-bold d-flex align-items-center'><IoLogOut className="me-2" style={{fontSize:'25px'}} />DéConnecter</NavDropdown.Item>
-                                </NavDropdown>
+                                <Nav.Link disabled={getWishLists.data.length===0?true:false } onClick={()=>{navigate('/Wishlist/')}}  className='d-flex justify-content-start align-items-center flex-wrap'><Badge bg="black"><GiHearts className="mx-1 text-danger" style={{fontSize:'25px'}} /><span className='text-primary d-flex align-items-end justify-content-end'>{getWishLists.data.length}</span></Badge><span className='d-lg-none ms-2'>COUP DE COEUR</span></Nav.Link>
+                                <Nav.Link disabled={getPaniers.data.length===0?true:false } onClick={()=>{navigate('/Carts/')}} className='d-flex justify-content-start align-items-center flex-wrap'><Badge bg="black"><BsCart4 className="mx-1 text-ligth" style={{fontSize:'25px'}} /><span className='text-primary d-flex align-items-end justify-content-end'>{getPaniers.data.length}</span></Badge><span className='d-lg-none ms-2'>PANIER</span></Nav.Link>
+                                
                             </Nav>
                         </Navbar.Collapse>
                     </Container>
@@ -90,4 +80,12 @@ export default function Header({panier, WishList, onMonProfil, onUserDisConnect,
                 <Alerts Etat={Alert.Etat} Type={Alert.Type} Titre={Alert.Titre}  Message={Alert.Message} onFermer= {onFermerAlert}/>
         </>
     );
+
+    /*<NavDropdown align='end' title={<span><BiSolidUserCircle style={{fontSize:"40px"}} /><span className="d-lg-none">UTILISATEURS</span></span>} id="navbarScrollingDropdown" className='fw-bold mx-0 my-0'>
+                                    <NavDropdown.Item disabled href="#" onClick={onMonProfil} className='d-flex align-items-center'><BiSolidUserRectangle className="me-2" style={{fontSize:'25px'}}/>Mon Profil</NavDropdown.Item>
+                                    <NavDropdown.Divider />
+                                    <NavDropdown.Item href="#" onClick={onChangeThemeStyle} className='d-flex align-items-center'><MdStyle className="me-2" style={{fontSize:'25px'}} />Thème Style</NavDropdown.Item>
+                                    <NavDropdown.Divider />
+                                    <NavDropdown.Item disabled href="#" onClick={onUserDisConnect} className='fw-bold d-flex align-items-center'><IoLogOut className="me-2" style={{fontSize:'25px'}} />DéConnecter</NavDropdown.Item>
+                                </NavDropdown> */
   }

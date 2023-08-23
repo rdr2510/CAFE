@@ -1,5 +1,5 @@
 import {Button, Card, Badge} from 'react-bootstrap';
-import Suggestions from '../../Backends/Suggestions';
+import { GetSuggestions} from '../../Backends/Suggestions';
 import { useEffect, useState } from 'react';
 import { BsCartPlus } from "react-icons/bs";
 import { FiMoreHorizontal } from "react-icons/fi";
@@ -13,20 +13,17 @@ import { useNavigate } from "react-router-dom";
 export default function RecentsProducts(){
     const navigate= useNavigate();
 
-    const urlBase= 'https://insta-api-api.0vxq7h.easypanel.host/';
-
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
+    const getSuggestions= GetSuggestions();
 
     useEffect(()=>{
-        const suggestions= new Suggestions(urlBase);
-        suggestions.getAll().then(p=>{
-            setProds(p.slice(0, 4));
-        }).catch(error=>{
-            setAlert({Etat: true, Titre: 'Error list all products', Type: 'ERROR', Message: error.message});
-            console.log(error);
-        });
-    }, []);
+        if (getSuggestions.isError){
+            setAlert({Etat: true, Titre: 'Error list all products', Type: 'ERROR', Message: getSuggestions.error.message});
+        } else if (getSuggestions.isSuccess) {
+            setProds(getSuggestions.data.slice(0, 4));
+        }
+    }, [getSuggestions, prods]);
 
     function onFermerAlert(){
         setAlert({Etat: false});

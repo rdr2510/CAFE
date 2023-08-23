@@ -1,20 +1,12 @@
 import Carousel from 'react-bootstrap/Carousel';
-import { useState } from 'react';
-import { GetProduits } from '../../Backends/Produits';
+import { useState, useContext } from 'react';
 import { Alerts } from './Alerts';
 import './Styles/carousel.css';
+import { ProductContext } from '../../App';
 
 export default function Slider(){
-    const [prods, setProds] =  useState([]);
-    const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
-
-    const produits = GetProduits();
-    if (produits.isError){
-        setAlert({Etat: true, Titre: 'Error list all products', Type: 'ERROR', Message: produits.error.message});
-    }
-    if (produits.isSuccess){
-        setProds(produits.data);
-    }
+    const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
+    const getProduits = useContext(ProductContext);
 
     function onFermerAlert(){
         setAlert({Etat: false});
@@ -23,7 +15,7 @@ export default function Slider(){
     return(
         <>
             <Carousel interval={2000} style={{height: '200px'}} ride= 'true' wrap= {true}>
-                {prods.map(item=>(
+                {getProduits.data.map(item=>(
                     <Carousel.Item key={item.id} className='bg-primary text-center text-lg-start'>
                         <img className='ms-lg-4' src={item.image} alt='' style={{objectFit: 'contain', height: '200px'}}/>
                         <Carousel.Caption>

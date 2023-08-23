@@ -1,27 +1,19 @@
-export default class Suggestions{
-    urlBase= '';
+import { useQuery, useMutation } from 'react-query'
+import axios from 'axios';
 
-    constructor (urlBase){
-       this.urlBase= urlBase; 
-    }
+const urlBase = 'https://insta-api-api.0vxq7h.easypanel.host/';
 
-    async getAll(){
-        const url= this.urlBase+'suggestions/recently-viewed-products';
-        const response= await fetch(url, {mode: 'no-cors', method:'GET'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
-        const suggestions= await response.json();
-        return suggestions;
+export function GetSuggestions(){
+    async function getSuggestions() {
+        const { data } = await axios.get(urlBase+'suggestions/recently-viewed-products');
+        return data;
     }
+    return useQuery(['suggestions'], getSuggestions);
+}
 
-    async delete(id){
-        const url= this.urlBase+'suggestions/recently-viewed-products/' + id;
-        const response= await fetch(url, {mode: 'no-cors', method:'DELETE'});
-        if (!response.ok) {
-            const error= await response.json();
-            throw error;
-        }
+export function DeleteSuggestions(){
+    async function deleteSuggestions({productId}) {
+        return await axios.delete(urlBase+'suggestions/recently-viewed-products/'+productId)
     }
+    return useMutation(deleteSuggestions);
 }

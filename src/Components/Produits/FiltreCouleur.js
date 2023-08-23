@@ -1,23 +1,21 @@
 import Form from 'react-bootstrap/Form';
-import { useState } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { IoIosColorPalette } from "react-icons/io";
-import {GetCouleurs} from '../../Backends/Produits';
 import { Alerts } from '../Communs/Alerts';
+import { ProductContext } from '../../App';
 
 export default function FiltreCouleur({onFilter}) {
     const [prods, setProds] =  useState([]);
     const [Alert, setAlert]= useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [checkAllColor, setcheckAllColor] =  useState(true);
     const [filter]= useState([]);
-    const couleurs = GetCouleurs();
+    const getProduits = useContext(ProductContext);
 
-    if (couleurs.isError){
-        setAlert({Etat: true, Titre: 'FILTRE COULEUR - Error list all products', Type: 'ERROR', Message: couleurs.error.message});
-    }
-
-    if (couleurs.isSuccess){
-        setProds(couleurs.data);
-    }
+    useEffect(()=>{
+        if (getProduits.isSuccess){
+            setProds(getProduits.data);
+        }
+    }, [prods])
 
     function Couleur(produit){
         let colors= [];
