@@ -128,7 +128,7 @@ export default function Checkout({onValidCheck}){
                                     <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                        <Form.Control required  type="text" name="codepostal" maxLength={6} placeholder="Code Postal" />
+                                        <Form.Control required  type="text" name="codepostal" maxLength={7} placeholder="Code Postal" />
                                         <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                             </div>
