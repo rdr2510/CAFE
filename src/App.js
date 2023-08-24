@@ -24,6 +24,8 @@ import Abouts from './Pages/Abouts';
 import Spinners from './Components/Communs/Spinners';
 import { GetPromotions } from './Backends/promotions';
 import Checkout from './Pages/Checkout';
+import ValidCheck from './Components/Paniers/ValidCheck';
+import Confirmation from './Components/Paniers/Confirmation';
 
 export const ProductContext = createContext();
 export const CategorieContext = createContext();
@@ -36,8 +38,12 @@ function App() {
     const [ThemeStyle, setThemeStyle]= useState('Cerulean_bootstrap.min.css');
     const [ModalStyle, setModalStyle]= useState({Etat: false, Theme:''});
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
-    
     const [searchProduits, setSearchProduits]= useState([]);
+    const [formCheckOut, setFormCheckOut]= useState({contactEmail: '', contactName: '', contactFirstName: '', contactLastName: '',
+        addressLine1: '', addressLine2: '', city: '', province: '', postalCode: '',
+        contactPhone: '', creditCardNumber: 0, creditCardExpirationMonth: 0,
+        creditCardExpirationYear: 0, creditCardCvv: 0, shippingMode: '',
+        total: 0, cartId: ''});
 
     const getPaniers= GetPaniers();
     const getWishLists= GetWishLists();
@@ -98,6 +104,10 @@ function App() {
         setAlert({Etat: false});
     }
 
+    function handleValidCheck(formValue){
+        setFormCheckOut(formValue);
+    }
+
 
     if (getProduits.isLoading){
         return <Spinners Message={'Chargement des données en cours..., Veuillez patienter s\'il vous plait.'}/>
@@ -138,8 +148,10 @@ function App() {
 
                                     <Route path="/CAFE" element={<Cafe/>}/>
                                     <Route path="/AJOUTCAFE" element={<Ajout/>}/>
+                                    <Route path="/Confirmation" element={<Confirmation/>}/>
 
-                                    <Route path="/Checkout" element={<Checkout/>}/>
+                                    <Route path="/Checkout" element={<Checkout onValidCheck={handleValidCheck}/>}/>
+                                    <Route path="/ValidCheck" element={<ValidCheck formCheckOut={formCheckOut}/>}/>
 
                                     <Route path="/Abouts" element={<Abouts />} />
                                     <Route path="*" element={<Home />} />

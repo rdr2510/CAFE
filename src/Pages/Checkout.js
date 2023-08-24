@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect} from "react";
 import {Table, Button, Form, Badge, Spinner, FloatingLabel} from 'react-bootstrap';
 import {GetCheckouts} from '../Backends/Checkout';
 import { Alerts } from '../Components/Communs/Alerts';
@@ -7,20 +7,28 @@ import {  BsCheck2All } from "react-icons/bs";
 import {  IoArrowBackSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-export default function Checkout(){
+export default function Checkout({onValidCheck}){
     const getCheckouts= GetCheckouts();
     const [Alert, setAlert]=useState({Etat: false, Titre: '', Type: '', Message: ''});
     const [checkouts, setCheckouts]= useState({cartId: 0, products: [], subTotal: 0, taxe:0, grandTotal: 0});
     const [validated, setValidated] = useState(false);
     const navigate= useNavigate();
+    const [formCheckOut, setFormCheckOut]= useState({contactEmail: '', contactName: '', contactFirstName: '', contactLastName: '',
+        addressLine1: '', addressLine2: '', city: '', province: '', postalCode: '',
+        contactPhone: '', creditCardNumber: 0, creditCardExpirationMonth: 0,
+        creditCardExpirationYear: 0, creditCardCvv: 0, shippingMode: '',
+        total: 0, cartId: ''});
 
     useEffect(()=>{
         if (getCheckouts.isError){
             setAlert({Etat: true, Titre: 'PANIER - Update item', Type: 'ERROR', Message: getCheckouts.error.message});
         } else if (getCheckouts.isSuccess){
             setCheckouts(getCheckouts.data);
+            formCheckOut.cartId= getCheckouts.data.cartId;
+            formCheckOut.total= getCheckouts.data.grandTotal;
+            formCheckOut.shippingMode= 'standard';
         }
-    }, [getCheckouts, checkouts]);
+    }, [getCheckouts, checkouts, formCheckOut]);
 
     function onFermerAlert(){
         setAlert({Etat: false});
@@ -42,15 +50,36 @@ export default function Checkout(){
         }
     }
 
+    function handleChangeLivraison(event){
+        formCheckOut.shippingMode= event.target.value;
+    }
+
     const handleSubmit = (event) => {
         const form = event.currentTarget;
         if (form.checkValidity() === false) {
-          event.preventDefault();
-          event.stopPropagation();
+           event.preventDefault();
+           event.stopPropagation();
+        } else {
+            event.preventDefault();
+            formCheckOut.contactName=  document.getElementsByName('nom')[0].value;
+            formCheckOut.contactEmail=  document.getElementsByName('email')[0].value;
+            formCheckOut.contactLastName=  document.getElementsByName('nom1')[0].value;
+            formCheckOut.contactFirstName=  document.getElementsByName('prenom')[0].value;
+            formCheckOut.addressLine1=  document.getElementsByName('adresse1')[0].value;
+            formCheckOut.addressLine2=  document.getElementsByName('adresse2')[0].value;
+            formCheckOut.postalCode=  document.getElementsByName('codepostal')[0].value;
+            formCheckOut.city=  document.getElementsByName('ville')[0].value;
+            formCheckOut.province=  document.getElementsByName('province')[0].value;
+            formCheckOut.contactPhone=  document.getElementsByName('phone')[0].value;
+            formCheckOut.creditCardNumber=  document.getElementsByName('creditcard')[0].value;
+            formCheckOut.creditCardExpirationMonth=  document.getElementsByName('mois')[0].value;
+            formCheckOut.creditCardExpirationYear=  document.getElementsByName('annee')[0].value;
+            formCheckOut.creditCardCvv=  document.getElementsByName('cvv')[0].value;
+            onValidCheck(formCheckOut);
+            navigate('/ValidCheck');
         }
-    
         setValidated(true);
-      };
+    };
 
     return(
         <>
@@ -61,12 +90,12 @@ export default function Checkout(){
                             <h4 className="mt-5 w-100 text-center">INFORMATION DE CONTACT</h4>
                             <div className="d-flex flex-row w-100">
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Nom" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required type="text" name="nom" placeholder="Nom"/>
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="email" placeholder="Adresse Mail" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required  type="email" name="email" placeholder="Adresse Mail"/>
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                             </div>
                         </div>
@@ -75,39 +104,43 @@ export default function Checkout(){
                             <h4 className="mt-5 w-100 text-center">ADRESSE</h4>
                             <div className="d-flex flex-row w-100">
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Nom" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required  type="text" name="nom1" placeholder="Nom"/>
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Prénom" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required  type="text" name="prenom" placeholder="Prénom"/>
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                             </div>
                             <div className="d-flex flex-row w-100">
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Adresse 1" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required  type="text" name="adresse1" placeholder="Adresse 1"/>
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Adresse 2" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control  type="text" name="adresse2" placeholder="Adresse 2" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                             </div>
                             <div className="d-flex flex-row w-100">
                                 <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Ville" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required  type="text" name="ville" placeholder="Ville" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
-                                <div className="d-flex w-50 mx-2">
-                                    <Form.Group className="me-2 my-2 w-50" controlId="validationCustom01">
-                                        <Form.Control required type="text" placeholder="Code Postal" />
-                                        <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
-                                    </Form.Group>
-                                    <Form.Group className="ms-2 my-2 w-50" controlId="validationCustom01">
-                                        <Form.Control required type="text" placeholder="Téléphone" />
-                                        <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
-                                    </Form.Group>
-                                </div>
+                                <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
+                                        <Form.Control required  type="text" name="codepostal" maxLength={6} placeholder="Code Postal" />
+                                        <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
+                                </Form.Group>
+                            </div>
+                            <div className="d-flex flex-row w-100">
+                                <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
+                                    <Form.Control required  type="text" name="province" placeholder="Province" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
+                                </Form.Group>
+                                <Form.Group className="mx-2 my-2 w-50" controlId="validationCustom01">
+                                        <Form.Control required  type="text" maxLength={10} pattern="\d*" name="phone" placeholder="Téléphone" />
+                                        <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
+                                </Form.Group>
                             </div>
                         </div>
 
@@ -115,22 +148,22 @@ export default function Checkout(){
                             <h4 className="mt-5 w-100 text-center">INFORMATION DE PAIEMENT</h4>
                             <div className="d-flex flex-row w-100">
                                 <Form.Group className="mx-2 my-2 w-100" controlId="validationCustom01">
-                                    <Form.Control required type="text" placeholder="Numéro carte de crédit" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required  type="number" name="creditcard" placeholder="Numéro carte de crédit" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                             </div>
                             <div className="d-flex flex-row w-100 justify-content-between">
                                 <Form.Group className="mx-2 my-2" controlId="validationCustom01">
-                                    <Form.Control onBlur={(event)=>{handleChangeMois(event)}} required type="text" pattern="\d*" maxLength="2" max="12" min="1" placeholder="Mois d'expiration" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control onBlur={(event)=>{handleChangeMois(event)}} name="mois" required  type="text" pattern="\d*" maxLength="2" max="12" min="1" placeholder="Mois d'expiration" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mx-2 my-2" controlId="validationCustom01">
-                                    <Form.Control onBlur={(event)=>{handleChangeAnnee(event)}} required type="text" pattern="\d*" maxLength='4' min='2023' placeholder="Année d'éxpiration" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control onBlur={(event)=>{handleChangeAnnee(event)}} name="annee" required type="text" pattern="\d*" maxLength='4' min='2023' placeholder="Année d'éxpiration" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                                 <Form.Group className="mx-2 my-2" controlId="validationCustom01">
-                                    <Form.Control required type="text" pattern="\d*" maxLength='3' min='2023' placeholder="CVV" />
-                                    <Form.Control.Feedback type="invalid">Looks good!</Form.Control.Feedback>
+                                    <Form.Control required type="text"   pattern="\d*" name="cvv" maxLength='3' min='2023' placeholder="CVV" />
+                                    <Form.Control.Feedback type="invalid">Erreur, ce champ ne doit pas etre vide !</Form.Control.Feedback>
                                 </Form.Group>
                             </div>
                         </div>
@@ -138,10 +171,10 @@ export default function Checkout(){
                         <div className="w-100">
                             <h4 className="mt-5 w-100 text-center">MÉTHODE DE LIVRAISON</h4>
                             <div className="d-flex flex-column w-100 border border-1 border-secondary rounded-3 mt-4 px-4 py-2">
-                                <Form.Group className="mx-2 my-2 w-100" >
-                                    <Form.Check className="my-2" type="radio" label= 'Standard - 10$' name="livraison" checked/>
-                                    <Form.Check className="my-2" type="radio" label= 'Express - 20$' name="livraison"/>
-                                    <Form.Check className="my-2" type="radio" label= 'Pickup - Gratuit' name="livraison"/>
+                                <Form.Group className="mx-2 my-2 w-100" onChange={(event)=>{handleChangeLivraison(event)}} >
+                                    <Form.Check className="my-2" type="radio" label= 'Standard - 10$' name="livraison" value='standard' defaultChecked/>
+                                    <Form.Check className="my-2" type="radio" label= 'Express - 20$' name="livraison" value='express'/>
+                                    <Form.Check className="my-2" type="radio" label= 'Pickup - Gratuit' name="livraison" value='pickup'/>
                                 </Form.Group>
                                 <h5>Livraison gratuit pour un achat plus de 100$</h5>
                             </div>
@@ -164,7 +197,7 @@ export default function Checkout(){
                             </thead>
                             <tbody>
                                 {checkouts.products.map(item=>(
-                                    <tr className="border-0">
+                                    <tr className="border-0" key={item.id}>
                                         <td>
                                             <div className="d-flex">
                                                 <div style={{height: '5rem', width: '10rem'}}>
